@@ -1,9 +1,0 @@
-{
-    "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=stfileprocwebjobs;AccountKey=kd7QS6v05Zw/wlWsAAl8Eq8Jd+T2N82RhFlQ3dBJbWPgs+CT4PdQyTU7/6XH04urtnuv4W9V/jh3qSsdAnK4qA==;EndpointSuffix=core.windows.net",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "PGP_PrivateKey": "pgp/keys/dev_private.asc",
-    "PGP_PublicKey":  "pgp/keys/dev_public.asc"
-  }
-}
