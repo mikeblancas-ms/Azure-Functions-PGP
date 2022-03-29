@@ -106,6 +106,7 @@ namespace FuncPgp.Helper
                 Stream outputStream = new MemoryStream();
                 var inputStream = await ReadBlobAsStream(filePath, connString);
                 var privateKeyStream = await ReadBlobAsStream(Environment.GetEnvironmentVariable("PGP_PrivateKey"), connString);
+
                 await pgp.DecryptStreamAsync(inputStream, outputStream, privateKeyStream, pass);
                 outputStream.Position = 0;
                 await blockBlob2.UploadFromStreamAsync(outputStream);
