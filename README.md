@@ -1,6 +1,6 @@
 # Azure Functions PgpCore
 Azure Functions C# sample for PGP encrypt and decrypt.
-This is based on code from [ikaur3009](https://github.com/ikaur3009) and [PgPCore](https://github.com/mattosaurus/PgpCore) library.
+This is based on code from [ikaur3009](https://github.com/ikaur3009) and [PgpCore](https://github.com/mattosaurus/PgpCore) library.
 ## Usage
 ### Keypair issues
 *BouncyCastle unknown packet type encountered: 20* when decrypting using exported private key from GnuPG/Gpg4win. Generate Keypair using this library, import public key to GPG/Gpg4win keyring of source server, and configure private key in Function app. Here is [sample](PGPDecrypt) C# console app for generating keypair.
