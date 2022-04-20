@@ -1,14 +1,68 @@
 ﻿using PgpCore;
+using System;
+using System.Threading.Tasks;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
-// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Generating public and private keys... ");
+namespace key_vault_console_app
+{
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            const string secretName = "mySecret";
+            var keyVaultName = Environment.GetEnvironmentVariable("KEY_VAULT_NAME");
+            keyVaultName = "kvpview";
+            var kvUri = $"https://{keyVaultName}.vault.azure.net";
 
-PGP pgp = new PGP();
+            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
 
-// Generate keys
-pgp.GenerateKey(@"C:\TEMP\dev_public.asc", @"C:\TEMP\dev_private.asc", "viblanca@microsoft.com", "Password12345", 3072);
+            Console.WriteLine("Generating public/private keypair.");
 
-Console.WriteLine("done!");
+            PGP pgp = new PGP();
+
+            Stream publicKey = new MemoryStream();
+            Stream privateKey = new MemoryStream();
+
+            pgp.GenerateKey(publicKey, privateKey, "viblanca@microsoft.com", "Password12345", 3072);
+            Console.WriteLine("done!");
+
+            //Stream pubKeySave = new FileStream(@"C:\Temp\public.asc", FileMode.Create, FileAccess.Write);
+            StreamReader reader2 = new StreamReader(publicKey);
+            publicKey.Position = 0;
+            var publicValue = reader2.ReadToEnd();
+
+            StreamReader reader = new StreamReader(privateKey);
+            privateKey.Position = 0;
+            var secretValue = reader.ReadToEnd();
+
+            Console.WriteLine($"Creating a secret in {keyVaultName} called '{secretName}' with the value '{secretValue}' ...");
+            await client.SetSecretAsync(secretName, secretValue);
+            Console.WriteLine(" done.");
+
+            Console.WriteLine("Forgetting your secret.");
+            secretValue = string.Empty;
+            Console.WriteLine($"Your secret is '{secretValue}'.");
+            Console.WriteLine($"PublicKey\n\n{publicValue}");
+
+            await File.WriteAllTextAsync(@"C:\Temp\public.asc", publicValue);
+
+            //Console.WriteLine($"Retrieving your secret from {keyVaultName}.");
+            //var secret = await client.GetSecretAsync(secretName);
+            //Console.WriteLine($"Your secret is '{secret.Value.Value}'.");
+
+            //Console.Write($"Deleting your secret from {keyVaultName} ...");
+            //DeleteSecretOperation operation = await client.StartDeleteSecretAsync(secretName);
+            // You only need to wait for completion if you want to purge or recover the secret.
+            //await operation.WaitForCompletionAsync();
+            //Console.WriteLine(" done.");
+
+            //Console.Write($"Purging your secret from {keyVaultName} ...");
+            //await client.PurgeDeletedSecretAsync(secretName);
+            //Console.WriteLine(" done.");
+        }
+    }
+}
 
 // Load keys
 //FileInfo privateKey = new FileInfo(@"C:\TEMP\private.asc");

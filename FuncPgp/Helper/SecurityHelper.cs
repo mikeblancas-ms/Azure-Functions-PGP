@@ -11,6 +11,8 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using PgpCore;
 using FuncPgp.Model;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 namespace FuncPgp.Helper
 {
@@ -106,6 +108,35 @@ namespace FuncPgp.Helper
                 Stream outputStream = new MemoryStream();
                 var inputStream = await ReadBlobAsStream(filePath, connString);
                 var privateKeyStream = await ReadBlobAsStream(Environment.GetEnvironmentVariable("PGP_PrivateKey"), connString);
+
+                await pgp.DecryptStreamAsync(inputStream, outputStream, privateKeyStream, pass);
+                outputStream.Position = 0;
+                await blockBlob2.UploadFromStreamAsync(outputStream);
+                isSuccess = true;
+            }
+
+            return isSuccess;
+        }
+
+        public static async Task<bool> DecryptAsyncKV(string outputPath, string filePath, string connString, string pass = null)
+        {
+            var isSuccess = false;
+            CloudBlockBlob blockBlob2 = SetBlockBlob(outputPath, connString);
+
+            using (PGP pgp = new PGP())
+            {
+                Stream outputStream = new MemoryStream();
+                var inputStream = await ReadBlobAsStream(filePath, connString);
+                //var privateKeyStream = await ReadBlobAsStream(Environment.GetEnvironmentVariable("PGP_PrivateKey"), connString);
+
+                const string secretName = "mySecret";
+                var keyVaultName = Environment.GetEnvironmentVariable("KEY_VAULT_NAME");
+                var kvUri = $"https://{keyVaultName}.vault.azure.net";
+
+                var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
+                var secret = await client.GetSecretAsync(secretName);
+                byte[] byteArray = Encoding.ASCII.GetBytes(secret.Value.Value);
+                var privateKeyStream = new MemoryStream(byteArray);
 
                 await pgp.DecryptStreamAsync(inputStream, outputStream, privateKeyStream, pass);
                 outputStream.Position = 0;

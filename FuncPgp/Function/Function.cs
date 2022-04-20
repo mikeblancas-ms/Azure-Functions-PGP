@@ -43,7 +43,7 @@ namespace FuncPgp
 
             var conn = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
 
-            var isSuccess = await SecurityHelper.DecryptAsync(output, file, conn, !string.IsNullOrEmpty(pass) ? pass : null);
+            var isSuccess = await SecurityHelper.DecryptAsyncKV(output, file, conn, !string.IsNullOrEmpty(pass) ? pass : null);
 
             return (ActionResult)new OkObjectResult(Newtonsoft.Json.JsonConvert.SerializeObject(isSuccess));
         }
