@@ -12,7 +12,6 @@ namespace key_vault_console_app
         {
             const string secretName = "mySecret";
             var keyVaultName = Environment.GetEnvironmentVariable("KEY_VAULT_NAME");
-            keyVaultName = "kvpview";
             var kvUri = $"https://{keyVaultName}.vault.azure.net";
 
             var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
@@ -24,7 +23,10 @@ namespace key_vault_console_app
             Stream publicKey = new MemoryStream();
             Stream privateKey = new MemoryStream();
 
-            pgp.GenerateKey(publicKey, privateKey, "viblanca@microsoft.com", "Password12345", 3072);
+            var email = Environment.GetEnvironmentVariable("EMAIL");
+            var passphrase = Environment.GetEnvironmentVariable("PASSPHRASE");
+
+            pgp.GenerateKey(publicKey, privateKey, email, passphrase, 3072);
             Console.WriteLine("done!");
 
             //Stream pubKeySave = new FileStream(@"C:\Temp\public.asc", FileMode.Create, FileAccess.Write);
