@@ -72,6 +72,31 @@ namespace FuncPgp
             return (ActionResult)new OkObjectResult(Newtonsoft.Json.JsonConvert.SerializeObject(isSuccess));
         }
 
+        [FunctionName(nameof(PGPGenKeys))]
+        public static async Task<IActionResult> PGPGenKeys(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
+        HttpRequest req, ILogger log)
+        {
 
-    }
+            log.LogInformation($"C# HTTP trigger function {nameof(PGPGenKeys)} processed a request.");
+
+            //var email = Environment.GetEnvironmentVariable("EMAIL");
+            //var passphrase = Environment.GetEnvironmentVariable("PASSPHRASE");
+
+            string email = req.Query["email"];
+            string pass = req.Query["passPhrase"];
+            string output = req.Query["outputPath"];
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            email = email ?? data?.email;
+            pass = pass ?? data?.passPhrase;
+            output = output ?? data?.outputPath;
+
+            var conn = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+
+            var isSuccess = await SecurityHelper.GenKeys(output, conn, email, pass);
+
+            return (ActionResult)new OkObjectResult(Newtonsoft.Json.JsonConvert.SerializeObject(isSuccess));
+        }
+     }
 }
