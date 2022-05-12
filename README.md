@@ -13,8 +13,7 @@ Added Azure Key Vault integration 2022-04-26
   "Values": {
     "AzureWebJobs":"DefaultEndpointsProtocol=https;AccountName=myAccountName;AccountKey=myAccountKey",
     "KEY_VAULT_NAME":"kvURI",
-    "KVSecretName": "secretName",
-    "PGP_PublicKey":"container/folder/publickey.asc"
+    "KVSecretName": "secretName"
   }
 }
 ```
