@@ -32,18 +32,22 @@ namespace FuncPgp
 
             log.LogInformation($"C# HTTP trigger function {nameof(PGPDecrypt)} processed a request.");
 
-            string pass = req.Query["passPhrase"];
+            //string pass = req.Query["passPhrase"];
             string output = req.Query["outputPath"];
             string file = req.Query["filePath"];
+            string kvsecpass = req.Query["kvsecpass"];
+            string kvsecpriv = req.Query["kvsecpriv"];
+
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            pass = pass ?? data?.passPhrase;
             file = file ?? data?.filePath;
             output = output ?? data?.outputPath;
+            kvsecpass = kvsecpass ?? data?.kvsecpass;
+            kvsecpriv = kvsecpriv ?? data?.kvsecpriv;
 
-            var conn = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            var conn = Environment.GetEnvironmentVariable("AzureStagingStorage");
 
-            var isSuccess = await SecurityHelper.DecryptAsyncKV(output, file, conn, !string.IsNullOrEmpty(pass) ? pass : null);
+            var isSuccess = await SecurityHelper.DecryptAsyncKV(output, file, conn, kvsecpass, kvsecpriv);
 
             return (ActionResult)new OkObjectResult(Newtonsoft.Json.JsonConvert.SerializeObject(isSuccess));
         }
@@ -56,18 +60,18 @@ namespace FuncPgp
 
             log.LogInformation($"C# HTTP trigger function {nameof(PGPEncrypt)} processed a request.");
 
-            string pass = req.Query["passPhrase"];
+            //string pass = req.Query["passPhrase"];
             string output = req.Query["outputPath"];
             string file = req.Query["filePath"];
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            pass = pass ?? data?.passPhrase;
+            //pass = pass ?? data?.passPhrase;
             file = file ?? data?.filePath;
             output = output ?? data?.outputPath;
 
-            var conn = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            var conn = Environment.GetEnvironmentVariable("AzureStagingStorage");
 
-            var isSuccess = await SecurityHelper.EncryptAsync(output, file, conn, !string.IsNullOrEmpty(pass) ? pass : null);
+            var isSuccess = await SecurityHelper.EncryptAsync(output, file, conn);
 
             return (ActionResult)new OkObjectResult(Newtonsoft.Json.JsonConvert.SerializeObject(isSuccess));
         }
@@ -86,15 +90,19 @@ namespace FuncPgp
             string email = req.Query["email"];
             string pass = req.Query["passPhrase"];
             string output = req.Query["outputPath"];
+            string kvsecpass = req.Query["kvsecpass"];
+            string kvsecpriv = req.Query["kvsecpriv"];
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             email = email ?? data?.email;
             pass = pass ?? data?.passPhrase;
             output = output ?? data?.outputPath;
+            kvsecpass = kvsecpass ?? data?.kvsecpass;
+            kvsecpriv = kvsecpriv ?? data?.kvsecpriv;
 
-            var conn = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            var conn = Environment.GetEnvironmentVariable("AzureStagingStorage");
 
-            var isSuccess = await SecurityHelper.GenKeys(output, conn, email, pass);
+            var isSuccess = await SecurityHelper.GenKeys(output, conn, email, pass, kvsecpass, kvsecpriv);
 
             return (ActionResult)new OkObjectResult(Newtonsoft.Json.JsonConvert.SerializeObject(isSuccess));
         }

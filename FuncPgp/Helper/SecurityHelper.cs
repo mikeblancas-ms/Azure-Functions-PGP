@@ -107,19 +107,18 @@ namespace FuncPgp.Helper
 
 
 
-        public static async Task<bool> GenKeys(string outputPath, string connString, string email, string pass)
+        public static async Task<bool> GenKeys(string outputPath, string connString, string email, string pass, string kvsecpass, string kvsecpriv)
         {
             var isSuccess = false;
             CloudBlockBlob blockBlob2 = SetBlockBlob(outputPath, connString);
 
             using (PGP pgp = new PGP())
             {
-                var secretName = Environment.GetEnvironmentVariable("KVSecretName");
                 var keyVaultName = Environment.GetEnvironmentVariable("KEY_VAULT_NAME");
 
                 var kvUri = $"https://{keyVaultName}.vault.azure.net";
                 var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
-
+                await client.SetSecretAsync(kvsecpass, pass);
 
                 Stream publicKey = new MemoryStream();
                 Stream privateKey = new MemoryStream();
@@ -130,9 +129,10 @@ namespace FuncPgp.Helper
                 var publicValue = stream2String(publicKey);
                 var secretValue = stream2String(privateKey);
 
-                await client.SetSecretAsync(secretName, secretValue);
+                await client.SetSecretAsync(kvsecpriv, secretValue);
                 publicKey.Position = 0;
                 await blockBlob2.UploadFromStreamAsync(publicKey);
+                isSuccess = true;
                 //await File.WriteAllTextAsync(@"C:\Temp\public.asc", publicValue);
             }
             return isSuccess;
@@ -158,7 +158,7 @@ namespace FuncPgp.Helper
             return isSuccess;
         }
 
-        public static async Task<bool> DecryptAsyncKV(string outputPath, string filePath, string connString, string pass = null)
+        public static async Task<bool> DecryptAsyncKV(string outputPath, string filePath, string connString, string kvsecpass, string kvsecpriv)
         {
             var isSuccess = false;
             CloudBlockBlob blockBlob2 = SetBlockBlob(outputPath, connString);
@@ -169,16 +169,17 @@ namespace FuncPgp.Helper
                 var inputStream = await ReadBlobAsStream(filePath, connString);
                 //var privateKeyStream = await ReadBlobAsStream(Environment.GetEnvironmentVariable("PGP_PrivateKey"), connString);
 
-                var secretName = Environment.GetEnvironmentVariable("KVSecretName");
                 var keyVaultName = Environment.GetEnvironmentVariable("KEY_VAULT_NAME");
                 var kvUri = $"https://{keyVaultName}.vault.azure.net";
 
                 var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
-                var secret = await client.GetSecretAsync(secretName);
-                byte[] byteArray = Encoding.ASCII.GetBytes(secret.Value.Value);
+                var privsecret = await client.GetSecretAsync(kvsecpriv);
+                byte[] byteArray = Encoding.ASCII.GetBytes(privsecret.Value.Value);
                 var privateKeyStream = new MemoryStream(byteArray);
 
-                await pgp.DecryptStreamAsync(inputStream, outputStream, privateKeyStream, pass);
+                var pass = await client.GetSecretAsync(kvsecpass);
+
+                await pgp.DecryptStreamAsync(inputStream, outputStream, privateKeyStream, pass.Value.Value);
                 outputStream.Position = 0;
                 await blockBlob2.UploadFromStreamAsync(outputStream);
                 isSuccess = true;
@@ -187,7 +188,7 @@ namespace FuncPgp.Helper
             return isSuccess;
         }
 
-        public static async Task<bool> EncryptAsync(string outputPath, string filePath, string connString, string pass = null)
+        public static async Task<bool> EncryptAsync(string outputPath, string filePath, string connString)
         {
             var isSuccess = false;
             CloudBlockBlob blockBlob2 = SetBlockBlob(outputPath, connString);
@@ -198,14 +199,7 @@ namespace FuncPgp.Helper
                 var inputStream = await ReadBlobAsStream(filePath, connString);
                 var publicKeyStream = await ReadBlobAsStream(Environment.GetEnvironmentVariable("PGP_PublicKey"), connString);
 
-                if (!string.IsNullOrEmpty(pass))
-                {
-                    var privateKeyStream = await ReadBlobAsStream(Environment.GetEnvironmentVariable("PGP_PrivateKey"), connString);
-                    await pgp.EncryptStreamAndSignAsync(inputStream, outputStream, publicKeyStream, privateKeyStream, pass);
-                } else
-                {
-                    await pgp.EncryptStreamAsync(inputStream, outputStream, publicKeyStream);
-                }
+                await pgp.EncryptStreamAsync(inputStream, outputStream, publicKeyStream);
                 outputStream.Position = 0;
                 await blockBlob2.UploadFromStreamAsync(outputStream);
                 isSuccess = true;

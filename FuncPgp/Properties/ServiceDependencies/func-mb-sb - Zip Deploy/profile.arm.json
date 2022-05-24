@@ -7,21 +7,21 @@
   "parameters": {
     "resourceGroupName": {
       "type": "string",
-      "defaultValue": "rg-fileprocessing",
+      "defaultValue": "func-mb-sb_group",
       "metadata": {
         "description": "Name of the resource group for the resource. It is recommended to put resources under same resource group for better tracking."
       }
     },
     "resourceGroupLocation": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "eastasia",
       "metadata": {
         "description": "Location of the resource group. Resource groups could have different location than resources, however by default we use API versions from latest hybrid profile which support all locations for resource types we support."
       }
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "funcpgp",
+      "defaultValue": "func-mb-sb",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }
@@ -128,7 +128,6 @@
                     "[variables('function_ResourceId')]"
                   ],
                   "properties": {
-                    "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage_name'), ';AccountKey=', listKeys(variables('storage_ResourceId'), '2017-10-01').keys[0].value, ';EndpointSuffix=', 'core.windows.net')]",
                     "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage_name'), ';AccountKey=', listKeys(variables('storage_ResourceId'), '2017-10-01').keys[0].value, ';EndpointSuffix=', 'core.windows.net')]",
                     "FUNCTIONS_EXTENSION_VERSION": "~3",
                     "FUNCTIONS_WORKER_RUNTIME": "dotnet"
