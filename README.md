@@ -19,7 +19,7 @@ Added Azure Key Vault integration 2022-04-26
 ```
 ### Invoke
 GenKeys
-```
+```json
 POST http://localhost:7071/api/PGPGenKeys?
 {
   "outputPath":"container/folder/publickey.asc",
@@ -30,7 +30,7 @@ POST http://localhost:7071/api/PGPGenKeys?
 }
 ```
 Decrypt
-```
+```json
 POST http://localhost:7071/api/PGPDecrypt?
 {
   "filePath":"container/folder/inputfilename",
@@ -40,7 +40,7 @@ POST http://localhost:7071/api/PGPDecrypt?
 }  
 ```
 Encrypt (still using public key path from environment PGP_PublicKey)
-```
+```json
 POST http://localhost:7071/api/PGPEncrypt?
 {
   "filePath":"container/folder/inputfilename",
