@@ -11,9 +11,9 @@ Added Azure Key Vault integration 2022-04-26
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobs":"DefaultEndpointsProtocol=https;AccountName=myAccountName;AccountKey=myAccountKey",
+    "AzureWebJobsStorage":"DefaultEndpointsProtocol=https;AccountName=myAccountName;AccountKey=myAccountKey",
+    "AzureStagingStorage":"DefaultEndpointsProtocol=https;AccountName=myAccountName;AccountKey=myAccountKey",
     "KEY_VAULT_NAME":"kvURI",
-    "KVSecretName": "secretName"
   }
 }
 ```
@@ -24,15 +24,9 @@ POST http://localhost:7071/api/PGPGenKeys?
 {
   "outputPath":"container/folder/publickey.asc",
   "email":"email@address.com",
-  "passPhrase":"secretpassphrase"
-}
-```
-Encrypt
-```
-POST http://localhost:7071/api/PGPEncrypt?
-{
-  "filePath":"container/folder/inputfilename",
-  "outputPath":"container/folder/outputfilename"
+  "passPhrase":"privateKeypassphrase"
+  "kvsecpass":"passPhraseKeyVaultSecret",
+  "kvsecpriv":"privateKeyKeyVaultSecret"
 }
 ```
 Decrypt
@@ -41,8 +35,17 @@ POST http://localhost:7071/api/PGPDecrypt?
 {
   "filePath":"container/folder/inputfilename",
   "outputPath":"container/folder/outputfilename",
-  "passPhrase":"secretpassphrase"
+  "kvsecpass":"passPhraseKeyVaultSecret",
+  "kvsecpriv":"privateKeyKeyVaultSecret"
 }  
+```
+Encrypt (still using public key path from environment PGP_PublicKey)
+```
+POST http://localhost:7071/api/PGPEncrypt?
+{
+  "filePath":"container/folder/inputfilename",
+  "outputPath":"container/folder/outputfilename",
+}
 ```
 ### Publish
 [Publish to Azure](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs?tabs=in-process#publish-to-azure)
